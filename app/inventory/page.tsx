@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -15,26 +15,44 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-
-const inventory = [
-  { id: 1, sku: "BP-001", name: "Тормозные колодки", manufacturer: "Brembo", quantity: 150, location: "A1-01" },
-  { id: 2, sku: "OF-002", name: "Масляный фильтр", manufacturer: "Mann-Filter", quantity: 200, location: "B2-03" },
-  { id: 3, sku: "SP-003", name: "Свечи зажигания", manufacturer: "NGK", quantity: 300, location: "C3-02" },
-  { id: 4, sku: "AF-004", name: "Воздушный фильтр", manufacturer: "K&N", quantity: 100, location: "A2-04" },
-  { id: 5, sku: "AT-005", name: "Генератор", manufacturer: "Bosch", quantity: 50, location: "D1-01" },
-]
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import type { InventoryItem } from "@/types/inventory"
 
 export default function Inventory() {
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [manufacturer, setManufacturer] = useState("")
-  const [newItem, setNewItem] = useState({
+  const [newItem, setNewItem] = useState<Omit<InventoryItem, "id" | "createdAt" | "updatedAt">>({
     sku: "",
     name: "",
     manufacturer: "",
-    quantity: "",
+    quantity: 0,
     location: "",
   })
-  const [inventoryItems, setInventoryItems] = useState(inventory)
+  const [notification, setNotification] = useState({ show: false, title: "", message: "" })
+
+  useEffect(() => {
+    fetchInventory()
+  }, [])
+
+  const fetchInventory = async () => {
+    try {
+      const response = await fetch("/api/inventory")
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setInventoryItems(data)
+    } catch (error) {
+      console.error("Failed to fetch inventory:", error)
+      setNotification({
+        show: true,
+        title: "Error",
+        message: "Failed to fetch inventory. Please try again later.",
+      })
+      setTimeout(() => setNotification({ show: false, title: "", message: "" }), 5000)
+    }
+  }
 
   const filteredInventory = inventoryItems.filter(
     (item) =>
@@ -43,9 +61,27 @@ export default function Inventory() {
       (manufacturer === "all" || manufacturer === "" || item.manufacturer === manufacturer),
   )
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setNewItem((prev) => ({ ...prev, [name]: value }))
+    setNewItem((prev) => ({ ...prev, [name]: name === "quantity" ? Number(value) : value }))
+  }
+
+  const handleAddItem = async () => {
+    const response = await fetch("/api/inventory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newItem),
+    })
+    if (response.ok) {
+      fetchInventory()
+      setNewItem({ sku: "", name: "", manufacturer: "", quantity: 0, location: "" })
+      setNotification({
+        show: true,
+        title: "Item added",
+        message: `${newItem.name} has been successfully added to the inventory.`,
+      })
+      setTimeout(() => setNotification({ show: false, title: "", message: "" }), 3000)
+    }
   }
 
   return (
@@ -69,11 +105,11 @@ export default function Inventory() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все производители</SelectItem>
-              <SelectItem value="Brembo">Brembo</SelectItem>
-              <SelectItem value="Mann-Filter">Mann-Filter</SelectItem>
-              <SelectItem value="NGK">NGK</SelectItem>
-              <SelectItem value="K&N">K&N</SelectItem>
-              <SelectItem value="Bosch">Bosch</SelectItem>
+              {Array.from(new Set(inventoryItems.map((item) => item.manufacturer))).map((name) => (
+                <SelectItem key={name} value={name}>
+                  {name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Dialog>
@@ -144,7 +180,7 @@ export default function Inventory() {
                   />
                 </div>
               </div>
-              <Button>Добавить товар</Button>
+              <Button onClick={handleAddItem}>Добавить товар</Button>
             </DialogContent>
           </Dialog>
         </CardContent>
@@ -188,6 +224,12 @@ export default function Inventory() {
           </Table>
         </CardContent>
       </Card>
+      {notification.show && (
+        <Alert className="fixed bottom-4 right-4 w-96">
+          <AlertTitle>{notification.title}</AlertTitle>
+          <AlertDescription>{notification.message}</AlertDescription>
+        </Alert>
+      )}
     </div>
   )
 }

@@ -1,93 +1,116 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import ReportsChart from "@/components/ReportsChart"
+import type { Supplier } from "@/types/supplier"
 
-const data = [
-  { name: "Янв", sales: 4000, purchases: 2400 },
-  { name: "Фев", sales: 3000, purchases: 1398 },
-  { name: "Мар", sales: 2000, purchases: 9800 },
-  { name: "Апр", sales: 2780, purchases: 3908 },
-  { name: "Май", sales: 1890, purchases: 4800 },
-  { name: "Июн", sales: 2390, purchases: 3800 },
-]
+export default function Suppliers() {
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
 
-export default function Reports() {
+  useEffect(() => {
+    fetchSuppliers()
+  }, [])
+
+  const fetchSuppliers = async () => {
+    try {
+      const response = await fetch("/api/suppliers")
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setSuppliers(data)
+    } catch (error) {
+      console.error("Failed to fetch suppliers:", error)
+    }
+  }
+
+  const filteredSuppliers = suppliers.filter(
+    (supplier) =>
+      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      supplier.contact.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Отчеты</h1>
+      <h1 className="text-4xl font-bold">Управление поставщиками</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Отчет по продажам и закупкам</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ReportsChart data={data} />
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Поиск поставщиков</CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-4">
+          <Input
+            placeholder="Поиск по названию или контактному лицу"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+          <Button>Добавить поставщика</Button>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Отчет по инвентарю</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите категорию" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все категории</SelectItem>
-                <SelectItem value="brakes">Тормозная система</SelectItem>
-                <SelectItem value="filters">Фильтры</SelectItem>
-                <SelectItem value="engine">Двигатель</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button className="w-full">Сгенерировать отчет</Button>
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Список поставщиков</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Название</TableHead>
+                <TableHead>Контактное лицо</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Телефон</TableHead>
+                <TableHead>Действия</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredSuppliers.map((supplier) => (
+                <TableRow key={supplier.id}>
+                  <TableCell>{supplier.name}</TableCell>
+                  <TableCell>{supplier.contact}</TableCell>
+                  <TableCell>{supplier.email}</TableCell>
+                  <TableCell>{supplier.phone}</TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="sm" className="mr-2">
+                      Редактировать
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Заказать
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Отчет по поставщикам</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите поставщика" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все поставщики</SelectItem>
-                <SelectItem value="brembo">Brembo</SelectItem>
-                <SelectItem value="mann-filter">Mann-Filter</SelectItem>
-                <SelectItem value="ngk">NGK</SelectItem>
-                <SelectItem value="bosch">Bosch</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button className="w-full">Сгенерировать отчет</Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Отчет по заказам</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите период" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">За неделю</SelectItem>
-                <SelectItem value="month">За месяц</SelectItem>
-                <SelectItem value="quarter">За квартал</SelectItem>
-                <SelectItem value="year">За год</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button className="w-full">Сгенерировать отчет</Button>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Ожидаемые поставки</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+              Brembo - Тормозные колодки (100 шт.) - Ожидается 15.03.2024
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+              Mann-Filter - Масляные фильтры (200 шт.) - Ожидается 20.03.2024
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+              NGK - Свечи зажигания (300 шт.) - Ожидается 25.03.2024
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   )
 }

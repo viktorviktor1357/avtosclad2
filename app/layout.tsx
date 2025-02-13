@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import Sidebar from "./components/Sidebar"
-import { ThemeProvider } from "./contexts/ThemeContext"
+import { ThemeProvider } from "@/app/contexts/ThemeContext"
 import type React from "react"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-background text-foreground`}>
         <ThemeProvider>
           <div className="flex h-screen overflow-hidden">
             <Sidebar />

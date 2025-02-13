@@ -1,17 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import DashboardChart from "@/components/DashboardChart"
-
-const data = [
-  { name: "Пн", value: 400 },
-  { name: "Вт", value: 300 },
-  { name: "Ср", value: 500 },
-  { name: "Чт", value: 280 },
-  { name: "Пт", value: 590 },
-  { name: "Сб", value: 320 },
-  { name: "Вс", value: 250 },
-]
+import { WeeklySalesChart } from "@/components/WeeklySalesChart"
 
 export default function Home() {
   return (
@@ -114,9 +104,7 @@ export default function Home() {
             <CardTitle>Недельные продажи</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <DashboardChart data={data} />
-            </div>
+            <WeeklySalesChart />
           </CardContent>
         </Card>
 

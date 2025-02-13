@@ -2,17 +2,16 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
-interface DataItem {
-  name: string
-  sales: number
-  purchases: number
-}
+const data = [
+  { name: "Янв", sales: 4000, purchases: 2400 },
+  { name: "Фев", sales: 3000, purchases: 1398 },
+  { name: "Мар", sales: 2000, purchases: 9800 },
+  { name: "Апр", sales: 2780, purchases: 3908 },
+  { name: "Май", sales: 1890, purchases: 4800 },
+  { name: "Июн", sales: 2390, purchases: 3800 },
+]
 
-interface ReportsChartProps {
-  data: DataItem[]
-}
-
-export default function ReportsChart({ data }: ReportsChartProps) {
+export function SalesAndPurchasesChart() {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data}>
@@ -26,5 +25,4 @@ export default function ReportsChart({ data }: ReportsChartProps) {
     </ResponsiveContainer>
   )
 }
-
 

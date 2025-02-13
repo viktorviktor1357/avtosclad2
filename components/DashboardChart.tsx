@@ -1,5 +1,6 @@
 "use client"
 
+
 import dynamic from "next/dynamic"
 
 const DynamicBarChart = dynamic(() => import("./DynamicBarChart"), { ssr: false })

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -16,20 +16,31 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-
-const orders = [
-  { id: 1, orderNumber: "ORD-001", customer: "АвтоМир", status: "Новый", items: 5, total: 1500 },
-  { id: 2, orderNumber: "ORD-002", customer: "СервисПлюс", status: "В обработке", items: 3, total: 800 },
-  { id: 3, orderNumber: "ORD-003", customer: "МастерДеталь", status: "Отправлен", items: 7, total: 2200 },
-  { id: 4, orderNumber: "ORD-004", customer: "АвтоЗапчасть", status: "Новый", items: 2, total: 350 },
-  { id: 5, orderNumber: "ORD-005", customer: "ТехноСервис", status: "В обработке", items: 4, total: 1100 },
-]
+import type { Order } from "@/types/order"
 
 export default function Orders() {
+  const [orders, setOrders] = useState<Order[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [status, setStatus] = useState("")
-  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [comment, setComment] = useState("")
+
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch("/api/orders")
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setOrders(data)
+    } catch (error) {
+      console.error("Failed to fetch orders:", error)
+    }
+  }
 
   const filteredOrders = orders.filter(
     (order) =>
@@ -38,14 +49,26 @@ export default function Orders() {
       (status === "all" || status === "" || order.status === status),
   )
 
-  const handleStatusChange = (orderId, newStatus) => {
-    // В реальном приложении здесь был бы API-запрос для обновления статуса
-    console.log(`Изменение статуса заказа ${orderId} на ${newStatus}`)
+  const handleStatusChange = async (orderId: number, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (response.ok) {
+        fetchOrders()
+      } else {
+        throw new Error("Failed to update order status")
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error)
+    }
   }
 
-  const handleCommentSubmit = (orderId) => {
-    // В реальном приложении здесь был бы API-запрос для добавления комментария
-    console.log(`Добавление комментария к заказу ${orderId}: ${comment}`)
+  const handleCommentSubmit = async (orderId: number) => {
+    // In a real application, you would send this comment to the backend
+    console.log(`Adding comment to order ${orderId}: ${comment}`)
     setComment("")
   }
 
@@ -162,7 +185,9 @@ export default function Orders() {
                             />
                           </div>
                         </div>
-                        <Button onClick={() => handleCommentSubmit(selectedOrder?.id)}>Добавить комментарий</Button>
+                        <Button onClick={() => selectedOrder && handleCommentSubmit(selectedOrder.id)}>
+                          Добавить комментарий
+                        </Button>
                       </DialogContent>
                     </Dialog>
                   </TableCell>
