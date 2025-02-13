@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import ReportsChart from "@/components/ReportsChart"
 
 const data = [
   { name: "Янв", sales: 4000, purchases: 2400 },
@@ -23,16 +23,7 @@ export default function Reports() {
             <CardTitle>Отчет по продажам и закупкам</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="sales" fill="#8884d8" name="Продажи" />
-                <Bar dataKey="purchases" fill="#82ca9d" name="Закупки" />
-              </BarChart>
-            </ResponsiveContainer>
+            <ReportsChart data={data} />
           </CardContent>
         </Card>
 

@@ -1,8 +1,11 @@
+"use client"
+
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTheme } from "../contexts/ThemeContext"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Package, ClipboardList, Truck, BarChart } from "lucide-react"
+import { LayoutDashboard, Package, ClipboardList, Truck, BarChart, Sun, Moon } from "lucide-react"
 
 const navItems = [
   { href: "/", label: "Обзор", icon: LayoutDashboard },
@@ -14,21 +17,22 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const { theme, toggleTheme } = useTheme()
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-card">
-      <div className="flex h-16 items-center justify-center border-b">
+    <div className="flex h-screen w-64 flex-col bg-background">
+      <div className="flex h-16 items-center justify-between border-b px-4">
         <h1 className="text-2xl font-bold">Склад</h1>
+        <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        </Button>
       </div>
       <nav className="flex-1 space-y-2 p-4">
         {navItems.map((item) => {
           const Icon = item.icon
           return (
             <Link key={item.href} href={item.href}>
-              <Button
-                variant="ghost"
-                className={cn("w-full justify-start", pathname === item.href && "bg-accent text-accent-foreground")}
-              >
+              <Button variant="ghost" className={cn("w-full justify-start", pathname === item.href && "bg-secondary")}>
                 <Icon className="mr-2 h-5 w-5" />
                 {item.label}
               </Button>
