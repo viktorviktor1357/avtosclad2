@@ -22,3 +22,30 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const { id, ...data } = await request.json()
+    const supplier = await prisma.supplier.update({
+      where: { id: Number(id) },
+      data,
+    })
+    return NextResponse.json(supplier)
+  } catch (error) {
+    console.error("Failed to update supplier:", error)
+    return NextResponse.json({ error: "Failed to update supplier" }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { id } = await request.json()
+    await prisma.supplier.delete({
+      where: { id: Number(id) },
+    })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Failed to delete supplier:", error)
+    return NextResponse.json({ error: "Failed to delete supplier" }, { status: 500 })
+  }
+}
+

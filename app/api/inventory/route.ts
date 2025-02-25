@@ -22,3 +22,30 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const { id, ...data } = await request.json()
+    const item = await prisma.inventoryItem.update({
+      where: { id },
+      data,
+    })
+    return NextResponse.json(item)
+  } catch (error) {
+    console.error("Failed to update inventory item:", error)
+    return NextResponse.json({ error: "Failed to update inventory item" }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { id } = await request.json()
+    await prisma.inventoryItem.delete({
+      where: { id },
+    })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Failed to delete inventory item:", error)
+    return NextResponse.json({ error: "Failed to delete inventory item" }, { status: 500 })
+  }
+}
+
