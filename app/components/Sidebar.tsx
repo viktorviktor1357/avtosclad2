@@ -12,7 +12,7 @@ const navItems = [
   { href: "/inventory", label: "Инвентарь", icon: Package },
   { href: "/orders", label: "Заказы", icon: ClipboardList },
   { href: "/suppliers", label: "Поставщики", icon: Truck },
-  { href: "/reports", label: "Отчеты", icon: BarChart },
+
 ]
 
 export default function Sidebar() {

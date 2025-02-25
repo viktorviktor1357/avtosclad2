@@ -29,6 +29,8 @@ export default function Inventory() {
     quantity: 0,
     location: "",
   })
+  const [editItem, setEditItem] = useState<InventoryItem | null>(null)
+  const [writeOffItem, setWriteOffItem] = useState<InventoryItem | null>(null)
   const [notification, setNotification] = useState({ show: false, title: "", message: "" })
 
   useEffect(() => {
@@ -66,6 +68,11 @@ export default function Inventory() {
     setNewItem((prev) => ({ ...prev, [name]: name === "quantity" ? Number(value) : value }))
   }
 
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setEditItem((prev) => prev && { ...prev, [name]: name === "quantity" ? Number(value) : value })
+  }
+
   const handleAddItem = async () => {
     const response = await fetch("/api/inventory", {
       method: "POST",
@@ -82,6 +89,53 @@ export default function Inventory() {
       })
       setTimeout(() => setNotification({ show: false, title: "", message: "" }), 3000)
     }
+  }
+
+  const handleEditItem = async () => {
+    if (!editItem) return
+    try {
+      const response = await fetch("/api/inventory", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editItem),
+      })
+      if (response.ok) {
+        fetchInventory()
+        setEditItem(null)
+        showNotification("Item updated", `${editItem.name} has been successfully updated.`)
+      } else {
+        throw new Error("Failed to update item")
+      }
+    } catch (error) {
+      console.error("Failed to update item:", error)
+      showNotification("Error", "Failed to update item. Please try again.")
+    }
+  }
+
+  const handleWriteOffItem = async () => {
+    if (!writeOffItem) return
+    try {
+      const response = await fetch("/api/inventory", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: writeOffItem.id }),
+      })
+      if (response.ok) {
+        fetchInventory()
+        setWriteOffItem(null)
+        showNotification("Item written off", `${writeOffItem.name} has been successfully written off.`)
+      } else {
+        throw new Error("Failed to write off item")
+      }
+    } catch (error) {
+      console.error("Failed to write off item:", error)
+      showNotification("Error", "Failed to write off item. Please try again.")
+    }
+  }
+
+  const showNotification = (title: string, message: string) => {
+    setNotification({ show: true, title, message })
+    setTimeout(() => setNotification({ show: false, title: "", message: "" }), 3000)
   }
 
   return (
@@ -211,12 +265,111 @@ export default function Inventory() {
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell>{item.location}</TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" className="mr-2">
-                      Редактировать
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Списать
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="mr-2" onClick={() => setEditItem(item)}>
+                          Редактировать
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Редактировать товар</DialogTitle>
+                          <DialogDescription>
+                            Измените информацию о товаре здесь. Нажмите Сохранить, когда закончите.
+                          </DialogDescription>
+                        </DialogHeader>
+                        {editItem && (
+                          <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="edit-sku" className="text-right">
+                                SKU
+                              </Label>
+                              <Input
+                                id="edit-sku"
+                                name="sku"
+                                value={editItem.sku}
+                                onChange={handleEditInputChange}
+                                className="col-span-3"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="edit-name" className="text-right">
+                                Название
+                              </Label>
+                              <Input
+                                id="edit-name"
+                                name="name"
+                                value={editItem.name}
+                                onChange={handleEditInputChange}
+                                className="col-span-3"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="edit-manufacturer" className="text-right">
+                                Производитель
+                              </Label>
+                              <Input
+                                id="edit-manufacturer"
+                                name="manufacturer"
+                                value={editItem.manufacturer}
+                                onChange={handleEditInputChange}
+                                className="col-span-3"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="edit-quantity" className="text-right">
+                                Количество
+                              </Label>
+                              <Input
+                                id="edit-quantity"
+                                name="quantity"
+                                type="number"
+                                value={editItem.quantity}
+                                onChange={handleEditInputChange}
+                                className="col-span-3"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="edit-location" className="text-right">
+                                Расположение
+                              </Label>
+                              <Input
+                                id="edit-location"
+                                name="location"
+                                value={editItem.location}
+                                onChange={handleEditInputChange}
+                                className="col-span-3"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        <Button onClick={handleEditItem}>Сохранить изменения</Button>
+                      </DialogContent>
+                    </Dialog>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" onClick={() => setWriteOffItem(item)}>
+                          Списать
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Списать товар</DialogTitle>
+                          <DialogDescription>
+                            Вы уверены, что хотите списать этот товар? Это действие нельзя отменить.
+                          </DialogDescription>
+                        </DialogHeader>
+                        {writeOffItem && (
+                          <div className="py-4">
+                            <p>
+                              Вы собираетесь списать товар: <strong>{writeOffItem.name}</strong> (SKU:{" "}
+                              {writeOffItem.sku})
+                            </p>
+                          </div>
+                        )}
+                        <Button onClick={handleWriteOffItem}>Подтвердить списание</Button>
+                      </DialogContent>
+                    </Dialog>
                   </TableCell>
                 </TableRow>
               ))}
@@ -233,4 +386,3 @@ export default function Inventory() {
     </div>
   )
 }
-

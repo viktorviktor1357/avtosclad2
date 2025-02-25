@@ -25,11 +25,7 @@ export default function Header() {
               Поставщики
             </Link>
           </li>
-          <li>
-            <Link href="/reports" className="hover:text-blue-200">
-              Отчеты
-            </Link>
-          </li>
+          
         </ul>
       </nav>
     </header>
